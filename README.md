@@ -1,78 +1,104 @@
-# React + TypeScript + Vite
+# Todo App (React + Context API)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, fully client-side todo application built to demonstrate idiomatic use of React's Context API for global state management — no Redux, no external state libraries, just Providers, hooks, and `localStorage`.
 
-Currently, two official plugins are available:
+![Light theme](/public/screenshots/todo-light-theme.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Create, edit, and delete todos** — inline editing with save-on-blur, `Enter` to confirm, `Escape` to cancel
+- **Toggle completion** with a single click
+- **Filter by status** — All / Active / Completed
+- **Bulk clear** completed items
+- **Persistent storage** — todo list survives page reloads via `localStorage`
+- **Dark mode** — respects system preference on first load, manual toggle persists across sessions
+- **Responsive UI** styled with Tailwind CSS
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Tech Stack
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+| Layer          | Choice                          |
+|----------------|----------------------------------|
+| Framework      | React 18 (function components + hooks) |
+| Language       | TypeScript                      |
+| Build tool     | Vite                             |
+| Styling        | Tailwind CSS v4                  |
+| Icons          | lucide-react                     |
+| State          | React Context API (no external state library) |
+| Persistence    | Browser `localStorage`           |
 
-## Expanding the ESLint configuration
+## Architecture
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+State is split into two independent contexts so that theme changes don't trigger todo re-renders and vice versa:
 
 ```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+src/
+├── context/
+│   ├── todos/
+│   │   ├── TodoContext.tsx      # Context definition + types
+│   │   ├── TodoProvider.tsx     # State, CRUD logic, localStorage sync
+│   │   └── useTodo.ts           # Consumer hook with guard
+│   └── theme/
+│       ├── ThemeContext.ts
+│       ├── themeProvider.tsx    # Theme state + localStorage + system preference
+│       └── useTheme.ts
+├── components/
+│   └── todos/
+│       ├── TodoForm.tsx         # Add new todos
+│       ├── TodoList.tsx         # Renders filtered list + item counts
+│       ├── TodoItem.tsx         # Single todo row (edit/delete/toggle)
+│       ├── TodoFilter.tsx       # All / Active / Completed controls
+│       └── ThemeButton.tsx      # Light/dark toggle
+├── types/
+│   └── index.ts                 # Shared `Todos` and `Theme` types
+├── App.tsx
+└── main.tsx
 ```
+
+Both `useTodo()` and `useTheme()` throw a descriptive error if called outside their respective providers, which catches misuse early during development rather than failing silently with `undefined`.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm (or yarn/pnpm)
+
+### Installation
+
+```bash
+git clone https://github.com/Farrukh-Murtaza/Lab-10.3-Context-API.git
+cd Lab-10.3-Context-API
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
+
+### Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Screenshots
+
+| All Todos | Dark Theme | Editing |
+|---|---|---|
+| ![All todos](/public/screenshots/all-todos.png) | ![Dark theme](/public/screenshots/todo-dark-theme.png) | ![Editing a todo](/public/screenshots/editing-todo.png) |
+
+| Active | Completed | Marking Complete |
+|---|---|---|
+| ![Active todos](/public/screenshots/active-todos.png) | ![Completed todos](/public/screenshots/completed-todos.png) | ![Marking complete](/public/screenshots/mark-completed-todos.png) |
+
+## Notes & Possible Improvements
+
+- Todo IDs are generated with `Date.now()`, which is fine for this scale but would benefit from `crypto.randomUUID()` in a production setting to avoid collision risk on rapid successive adds.
+- State currently lives entirely in `localStorage`; swapping the provider's persistence layer for an API/database would be a drop-in change since components only depend on the `useTodo()` interface.
+- No test suite is currently included — `TodoProvider`'s reducer-like functions (`addTodo`, `editTodo`, `toggleTodo`, `clearCompleted`) are pure and would be straightforward to unit test in isolation.
+
