@@ -4,9 +4,10 @@ import type { Todos } from "../../types";
 interface TodoContextType {
     todoList: Todos[],
     addTodo: (item: Todos) => void,
-    EditTodo: (id: string, item: Todos) => void,
-    DeletetTodo: (id: string) => void,
-    handleComplete: (id: string) => void
+    editTodo: (item: Todos) => void,
+    deleteTodo: (item: Todos) => void,
+    toggleTodo: (item: Todos) => void
+    clearCompleted: () => void
 }
 
 

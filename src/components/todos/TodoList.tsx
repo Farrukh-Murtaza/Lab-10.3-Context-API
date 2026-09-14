@@ -1,53 +1,49 @@
-import { Edit2, TrashIcon } from "lucide-react";
 import { useTodo } from "../../context/todos/useTodo";
+import { useMemo } from "react";
+import TodoItem from "./TodoItem";
 
 
 
 
 function TodoList() {
-    const { todoList, DeletetTodo, handleComplete } = useTodo()
+    const { todoList, clearCompleted } = useTodo()
+
+    const { completedCount, uncompletedCount } = useMemo(() => {
+        return todoList.reduce(
+            (acc, todo) => {
+                if (todo.isCompleted) {
+                    acc.completedCount += 1;
+                } else {
+                    acc.uncompletedCount += 1;
+                }
+                return acc;
+            },
+            { completedCount: 0, uncompletedCount: 0 }
+        );
+    }, [todoList]);
 
 
-    return <ul className="mt-6 space-y-3">
-        {
-            todoList.map((todo) => {
-                return <li id={todo.id} key={todo.id} className="group flex items-center gap-3 bg-white dark:bg-slate-700/60 border border-slate-100 dark:border-slate-600/60 rounded-2xl px-5 py-3.5 text-slate-700 dark:text-slate-200 shadow-sm hover:border-blue-300 dark:hover:border-blue-500/60 hover:shadow-md hover:translate-x-0.5 transition-all cursor-pointer">
-                    <span
-                        onClick={() => handleComplete(todo.id)}
-                        className={`w-5 h-5 rounded-full border-2 shrink-0 transition-colors cursor-pointer
-                            ${todo.isCompleted
-                                ? 'border-green-500 bg-green-500 dark:border-green-400 dark:bg-green-400'
-                                : 'border-slate-300 dark:border-slate-500 group-hover:border-blue-500'
-                            }`}
-                    />
-                    <span className={`flex-1 text-slate-800 dark:text-slate-200 transition-all
-                        ${todo.isCompleted
-                            ? 'line-through text-slate-400 dark:text-slate-500 italic'
-                            : ''
-                        }`}
-                    >
-                        {todo.text}
-                    </span>
+    return <div>
+        <ul className="mt-6 space-y-3 h-112.5 overflow-y-auto overflow-x-hidden pr-2">
+            {
+                todoList.map((todo) => {
+                    return <TodoItem key={todo.id} todo={todo} />
+                }).reverse()
+            }
+        </ul>
+        <div className="flex justify-between py-3 border-t border-border mt-5">
+            <p>
+                <span className="font-bold">{uncompletedCount}</span> items left</p>
 
-                    <div className="gap-2 flex">
-                        <button
-
-                            className="p-2 rounded-full
-                             hover:bg-slate-300">
-                            <Edit2 size={18} />
-                        </button>
-
-                        <button
-                            onClick={() => DeletetTodo(todo.id)}
-                            className="p-2 rounded-full
-                             hover:bg-slate-300">
-                            <TrashIcon size={18} />
-                        </button>
-                    </div>
-                </li>
-            })
-        }
-    </ul>
+            {completedCount > 0 &&
+                <button
+                    onClick={clearCompleted}
+                    className="hover:text-blue-500 hover:underline 
+                    decoration-blue-500-">
+                    Clear Completed {completedCount}</button>
+            }
+        </div>
+    </div>
 }
 
 export default TodoList;
