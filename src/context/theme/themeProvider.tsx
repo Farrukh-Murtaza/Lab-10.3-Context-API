@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { ThemeContext } from "./themeContext"
+import { ThemeContext } from "./ThemeContext"
 import type { Theme } from "../../types";
 
 
