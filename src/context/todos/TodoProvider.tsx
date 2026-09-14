@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { TodoContext } from "./TodoContext";
+import { TodoContext, type FilterType } from "./TodoContext";
 import type { Todos } from "../../types";
 
 interface TodoProviderProps {
@@ -9,6 +9,9 @@ interface TodoProviderProps {
 const LOCAL_STORAGE_KEY = "todo-app-list";
 
 export const TodoProvider = ({ children }: TodoProviderProps) => {
+
+    const [currentFilter, setFilter] = useState<FilterType>("all");
+
     const [todoList, setTodoList] = useState<Todos[]>(() => {
         try {
             const savedTodos = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -34,14 +37,14 @@ export const TodoProvider = ({ children }: TodoProviderProps) => {
         );
     }
 
-    function deleteTodo(item: Todos) {
+    function deleteTodo(id: string) {
         setTodoList((prevTodos) =>
-            prevTodos.filter((todo) => todo.id !== item.id)
+            prevTodos.filter((todo) => todo.id !== id)
         );
     }
 
-    function toggleTodo(item: Todos) {
-        setTodoList((prevTodos) => prevTodos.map((todo) => todo.id === item.id
+    function toggleTodo(id: string) {
+        setTodoList((prevTodos) => prevTodos.map((todo) => todo.id === id
             ? { ...todo, isCompleted: !todo.isCompleted } : todo
         ))
     }
@@ -52,9 +55,17 @@ export const TodoProvider = ({ children }: TodoProviderProps) => {
         );
     }
 
+    const filteredTodos = todoList.filter((todo) => {
+
+        if (currentFilter === "active") return !todo.isCompleted;
+        if (currentFilter === "completed") return todo.isCompleted;
+        return true;
+    }).reverse();
+
+
     return (
         <TodoContext.Provider value={{
-            todoList, addTodo, editTodo, deleteTodo, toggleTodo, clearCompleted
+            todoList, addTodo, editTodo, deleteTodo, toggleTodo, clearCompleted, currentFilter, filteredTodos, setFilter
         }}>
             {children}
         </TodoContext.Provider>

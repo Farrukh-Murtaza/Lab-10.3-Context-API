@@ -6,7 +6,7 @@ import type { Todos } from "../../types";
 
 
 function TodoForm() {
-    const { addTodo } = useTodo();
+    const { addTodo, setFilter } = useTodo();
     const [todo, setTodo] = useState<string>('');
 
 
@@ -23,6 +23,7 @@ function TodoForm() {
         }
         addTodo(todoArr)
         setTodo('');
+        setFilter('all')
     }
 
     return <form onSubmit={handlSubmit}>
