@@ -1,11 +1,8 @@
-import { useTodo } from "../../context/todos";
-
-// Define the filter types based on what your application handles
-type FilterType = "all" | "active" | "completed";
+import { useFilter, type FilterType } from "../../context/filter";
 
 function TodoFilter() {
-    // Destructure current filter and the function to change it from your context
-    const { currentFilter, setFilter } = useTodo();
+    // Destructure current filter and the function to change it from FilterContext
+    const { currentFilter, setFilter } = useFilter();
 
     // Define the filter options for looping
     const filters: { label: string; value: FilterType }[] = [

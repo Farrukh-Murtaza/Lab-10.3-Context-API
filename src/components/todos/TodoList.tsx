@@ -1,12 +1,23 @@
 import { useTodo } from "../../context/todos/useTodo";
+import { useFilter } from "../../context/filter";
 import { useMemo } from "react";
 import TodoItem from "./TodoItem";
 
 function TodoList() {
-    const { filteredTodos, clearCompleted } = useTodo();
+    const { todoList, clearCompleted } = useTodo();
+    const { currentFilter } = useFilter();
 
-    const { completedCount, uncompletedCount } = useMemo(() => {
-        return filteredTodos.reduce(
+    const { filteredTodos, completedCount, uncompletedCount } = useMemo(() => {
+        const filtered = todoList
+            .filter((todo) => {
+                if (currentFilter === "active") return !todo.isCompleted;
+                if (currentFilter === "completed") return todo.isCompleted;
+                return true;
+            })
+            .slice()
+            .reverse();
+
+        const counts = todoList.reduce(
             (acc, todo) => {
                 if (todo.isCompleted) {
                     acc.completedCount += 1;
@@ -17,13 +28,14 @@ function TodoList() {
             },
             { completedCount: 0, uncompletedCount: 0 }
         );
-    }, [filteredTodos]);
+
+        return { filteredTodos: filtered, ...counts };
+    }, [todoList, currentFilter]);
 
     return (
         <div>
             {/* Switched to h-[450px] to ensure native Tailwind compatibility */}
             <ul className="mt-6 space-y-3 h-112.5 overflow-y-auto overflow-x-hidden pr-2">
-                {/* Creating a shallow copy before reversing keeps array rendering stable */}
                 {filteredTodos.map((todo) => {
                     return <TodoItem key={todo.id} todo={todo} />;
                 })}

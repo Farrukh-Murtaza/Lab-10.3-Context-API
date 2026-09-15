@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useTodo } from "../../context/todos/useTodo";
+import { useFilter } from "../../context/filter";
 import type { Todos } from "../../types";
 
 
 
 
 function TodoForm() {
-    const { addTodo, setFilter } = useTodo();
+    const { addTodo } = useTodo();
+    const { setFilter } = useFilter();
     const [todo, setTodo] = useState<string>('');
 
 

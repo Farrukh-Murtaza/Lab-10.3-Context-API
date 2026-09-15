@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { TodoContext, type FilterType } from "./TodoContext";
+import { TodoContext } from "./TodoContext";
 import type { Todos } from "../../types";
 
 interface TodoProviderProps {
@@ -9,8 +9,6 @@ interface TodoProviderProps {
 const LOCAL_STORAGE_KEY = "todo-app-list";
 
 export const TodoProvider = ({ children }: TodoProviderProps) => {
-
-    const [currentFilter, setFilter] = useState<FilterType>("all");
 
     const [todoList, setTodoList] = useState<Todos[]>(() => {
         try {
@@ -22,7 +20,7 @@ export const TodoProvider = ({ children }: TodoProviderProps) => {
         }
     });
 
-    // 2. Automatically sync state to localStorage whenever todoList changes
+    // Automatically sync state to localStorage whenever todoList changes
     useEffect(() => {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todoList));
     }, [todoList]);
@@ -55,17 +53,9 @@ export const TodoProvider = ({ children }: TodoProviderProps) => {
         );
     }
 
-    const filteredTodos = todoList.filter((todo) => {
-
-        if (currentFilter === "active") return !todo.isCompleted;
-        if (currentFilter === "completed") return todo.isCompleted;
-        return true;
-    }).reverse();
-
-
     return (
         <TodoContext.Provider value={{
-            todoList, addTodo, editTodo, deleteTodo, toggleTodo, clearCompleted, currentFilter, filteredTodos, setFilter
+            todoList, addTodo, editTodo, deleteTodo, toggleTodo, clearCompleted
         }}>
             {children}
         </TodoContext.Provider>

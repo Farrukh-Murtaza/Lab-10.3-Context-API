@@ -28,25 +28,29 @@ A lightweight, fully client-side todo application built to demonstrate idiomatic
 
 ## Architecture
 
-State is split into two independent contexts so that theme changes don't trigger todo re-renders and vice versa:
+State is split into three independent contexts, each owning a single concern, so that a change in one (e.g. toggling the theme) doesn't trigger re-renders in components that only care about another (e.g. the todo list):
 
 ```
 src/
 ├── context/
 │   ├── todos/
-│   │   ├── TodoContext.tsx      # Context definition + types
+│   │   ├── TodoContext.tsx      # Context definition + types (todo data + CRUD only)
 │   │   ├── TodoProvider.tsx     # State, CRUD logic, localStorage sync
 │   │   └── useTodo.ts           # Consumer hook with guard
+│   ├── filter/
+│   │   ├── FilterContext.ts     # Context definition + FilterType
+│   │   ├── FilterProvider.tsx   # currentFilter state ("all" | "active" | "completed")
+│   │   └── useFilter.ts         # Consumer hook with guard
 │   └── theme/
 │       ├── ThemeContext.ts
 │       ├── themeProvider.tsx    # Theme state + localStorage + system preference
 │       └── useTheme.ts
 ├── components/
 │   └── todos/
-│       ├── TodoForm.tsx         # Add new todos
-│       ├── TodoList.tsx         # Renders filtered list + item counts
+│       ├── TodoForm.tsx         # Add new todos; resets filter to "all" on add
+│       ├── TodoList.tsx         # Combines TodoContext + FilterContext to render the filtered list + item counts
 │       ├── TodoItem.tsx         # Single todo row (edit/delete/toggle)
-│       ├── TodoFilter.tsx       # All / Active / Completed controls
+│       ├── TodoFilter.tsx       # All / Active / Completed controls, backed by FilterContext
 │       └── ThemeButton.tsx      # Light/dark toggle
 ├── types/
 │   └── index.ts                 # Shared `Todos` and `Theme` types
@@ -54,7 +58,21 @@ src/
 └── main.tsx
 ```
 
-Both `useTodo()` and `useTheme()` throw a descriptive error if called outside their respective providers, which catches misuse early during development rather than failing silently with `undefined`.
+`TodoContext` is intentionally scoped to todo data and CRUD actions only — it has no knowledge of filtering. `FilterContext` owns the active filter in isolation. `TodoList` is the one place the two are composed: it reads `todoList` from `useTodo()` and `currentFilter` from `useFilter()`, and derives the visible list and item counts from both.
+
+`useTodo()`, `useFilter()`, and `useTheme()` each throw a descriptive error if called outside their respective providers, which catches misuse early during development rather than failing silently with `undefined`.
+
+Provider nesting order in `main.tsx`:
+
+```tsx
+<ThemeProvider>
+  <TodoProvider>
+    <FilterProvider>
+      <App />
+    </FilterProvider>
+  </TodoProvider>
+</ThemeProvider>
+```
 
 ## Getting Started
 
@@ -96,9 +114,4 @@ npm run preview
 |---|---|---|
 | ![Active todos](/public/screenshots/active-todos.png) | ![Completed todos](/public/screenshots/completed-todos.png) | ![Marking complete](/public/screenshots/mark-completed-todos.png) |
 
-## Notes & Possible Improvements
-
-- Todo IDs are generated with `Date.now()`, which is fine for this scale but would benefit from `crypto.randomUUID()` in a production setting to avoid collision risk on rapid successive adds.
-- State currently lives entirely in `localStorage`; swapping the provider's persistence layer for an API/database would be a drop-in change since components only depend on the `useTodo()` interface.
-- No test suite is currently included — `TodoProvider`'s reducer-like functions (`addTodo`, `editTodo`, `toggleTodo`, `clearCompleted`) are pure and would be straightforward to unit test in isolation.
 
